@@ -41,7 +41,7 @@
 #include "lv2/lv2plug.in/ns/ext/log/logger.h"
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
-#define HARMONIZER_URI "http://dsheeler.org/plugins/harmonizer"
+#define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
 #define RB_SIZE 16384
 #define AUBIO_BUFFER_SIZE 1024
 #define AUBIO_HOP_SIZE 256
