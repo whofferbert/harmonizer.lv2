@@ -46,7 +46,8 @@
 #define AUBIO_BUFFER_SIZE 2048
 #define AUBIO_HOP_SIZE 256
 #define NUM_ONSET_METHODS 9
-#define NUM_PITCH_METHODS 6
+//#define NUM_PITCH_METHODS 6
+#define NUM_PITCH_METHODS 7
 
 typedef struct {
   LV2_URID atom_Blank;
@@ -240,6 +241,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   pitch_methods[3] = (char*)"mcomb";
   pitch_methods[4] = (char*)"yin";
   pitch_methods[5] = (char*)"yinfft";
+  pitch_methods[6] = (char*)"yinfast";
   for (int i = 0; i < NUM_ONSET_METHODS; i++) {
     harm->onsets[i] = new_aubio_onset(onset_methods[i], harm->bufsize,
      harm->hopsize, harm->samplerate);
