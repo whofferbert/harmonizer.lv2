@@ -28,7 +28,7 @@ If you are using MODEP and want to use this, then also do the following, which w
 sudo ln -s $(pwd)/build /usr/local/modep/.lv2/harmonizer.lv2
 ```
 
-Reboot
+Reboot your pi afterward, and you should be able to find the Harmonizer plugin in the list.
 
 ## Notes
 
