@@ -1,0 +1,3 @@
+[submodule "src/aubio"]
+	path = src/aubio
+	url = https://github.com/whofferbert/aubio
