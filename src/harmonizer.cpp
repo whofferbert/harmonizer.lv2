@@ -43,6 +43,8 @@
 
 #define HARMONIZER_URI "http://dsheeler.org/plugins/harmonizer"
 #define RB_SIZE 16384
+#define AUBIO_BUFFER_SIZE 2048
+#define AUBIO_HOP_SIZE 256
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 6
 
@@ -185,6 +187,9 @@ void send_noteoff(smpl_t note, smpl_t level, void *usr) {
   forge_midimessage(harm, 0, event, 3);
 }
 
+// set up  the plugin here
+// important things happen during this step
+
 static LV2_Handle
 instantiate(const LV2_Descriptor*     descriptor,
     double                    rate,
@@ -209,14 +214,17 @@ instantiate(const LV2_Descriptor*     descriptor,
   lv2_atom_forge_init (&harm->forge, harm->map);
   map_mem_uris (harm->map, &harm->uris);
   harm->samplerate = (float)rate;
-  harm->bufsize = 512;
-  harm->hopsize = 256;
+  // bufsize/hipsize are critical for proper sampling ranges
+  harm->bufsize = AUBIO_BUFFER_SIZE;
+  harm->hopsize = AUBIO_HOP_SIZE;
+  // sets length of note vector buffers
   harm->median = 6;
   harm->onset = new_fvec(1);
   harm->ab_in = new_fvec(harm->hopsize);
   harm->ab_out = new_fvec(1);
   harm->note_buffer = new_fvec(harm->median);
   harm->note_buffer2 = new_fvec(harm->median);
+  // different settings for pitch detection
   onset_methods[0] = (char*)"default";
   onset_methods[1] = (char*)"energy";
   onset_methods[2] = (char*)"hfc";
@@ -277,12 +285,16 @@ connect_port(LV2_Handle instance,
 static void
 activate(LV2_Handle instance)
 {
+  // probably code goes here
 }
 
 static void
 deactivate(LV2_Handle instance)
 {
+  // probably code goes here
 }
+
+// the run method. do the thing, every time
 
 static void
 run(LV2_Handle instance, uint32_t n_samples)
@@ -300,25 +312,27 @@ run(LV2_Handle instance, uint32_t n_samples)
       lv2_log_trace(&harm->logger, "overrun on ringbuf: %d\n", harm->overruns);
     }
   }
+  // while we have things to do ...
   while (harm->ringbuf->GetReadAvail() >= sizeof(smpl_t) * harm->hopsize) {
-    harm->ringbuf->Read((unsigned char*)harm->ab_in->data, sizeof(smpl_t)
-     * harm->hopsize);
-    aubio_onset_set_silence(harm->onsets[(int)*harm->onset_method],
-     (float)*harm->silence_threshold);
-    aubio_onset_set_threshold(harm->onsets[(int)*harm->onset_method],
-     (float)*harm->onset_threshold);
-    aubio_onset_do(harm->onsets[(int)*harm->onset_method],
-     harm->ab_in, harm->onset);
-    aubio_pitch_set_tolerance(harm->pitches[(int)*harm->pitch_method],
-     (float)*harm->pitch_threshold);
-    aubio_pitch_set_silence(harm->pitches[(int)*harm->pitch_method],
-     (float)*harm->silence_threshold);
-    aubio_pitch_do(harm->pitches[(int)*harm->pitch_method],
-     harm->ab_in, harm->ab_out);
+    harm->ringbuf->Read((unsigned char*)harm->ab_in->data, sizeof(smpl_t) * harm->hopsize);
+
+    aubio_onset_set_silence(harm->onsets[(int)*harm->onset_method], (float)*harm->silence_threshold);
+
+    aubio_onset_set_threshold(harm->onsets[(int)*harm->onset_method], (float)*harm->onset_threshold);
+
+    aubio_onset_do(harm->onsets[(int)*harm->onset_method], harm->ab_in, harm->onset);
+
+    aubio_pitch_set_tolerance(harm->pitches[(int)*harm->pitch_method], (float)*harm->pitch_threshold);
+
+    aubio_pitch_set_silence(harm->pitches[(int)*harm->pitch_method], (float)*harm->silence_threshold);
+
+    aubio_pitch_do(harm->pitches[(int)*harm->pitch_method], harm->ab_in, harm->ab_out);
+
     new_pitch = fvec_get_sample(harm->ab_out, 0);
+
     note_append(harm->note_buffer, new_pitch);
-    harm->curlevel = aubio_level_detection(harm->ab_in,
-     *harm->silence_threshold);
+
+    harm->curlevel = aubio_level_detection(harm->ab_in, *harm->silence_threshold);
     if (fvec_get_sample(harm->onset, 0)) {
       if (harm->curlevel == 1.0) {
         harm->isready = 0;
