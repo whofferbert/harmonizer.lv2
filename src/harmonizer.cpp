@@ -54,10 +54,10 @@ typedef struct {
 } harmonizer_URIs;
 
 typedef enum {
-	HARMONIZER_ONSET_METHOD   = 0,
-	HARMONIZER_ONSET_THRESHOLD   = 1,
+  HARMONIZER_ONSET_METHOD   = 0,
+  HARMONIZER_ONSET_THRESHOLD   = 1,
   HARMONIZER_SILENCE_THRESHOLD = 2,
-	HARMONIZER_PITCH_METHOD   = 3,
+  HARMONIZER_PITCH_METHOD   = 3,
   HARMONIZER_PITCH_THRESHOLD = 4,
   HARMONIZER_INPUT  = 5,
   HARMONIZER_MIDI_OUT = 6
@@ -83,7 +83,7 @@ typedef struct {
   LV2_Atom_Forge_Frame frame;
   const float* onset_method;
   const float* onset_threshold;
-	const float* silence_threshold;
+  const float* silence_threshold;
   const float* pitch_method;
   const float* pitch_threshold;
   const float* input;
@@ -236,32 +236,32 @@ instantiate(const LV2_Descriptor*     descriptor,
 
 static void
 connect_port(LV2_Handle instance,
-             uint32_t   port,
-             void*      data)
+    uint32_t   port,
+    void*      data)
 {
-	Harmonizer* harm = (Harmonizer*)instance;
-	switch ((PortIndex)port) {
-	case HARMONIZER_ONSET_METHOD:
-		harm->onset_method = (float *)data;
-    break;
-	case HARMONIZER_ONSET_THRESHOLD:
-		harm->onset_threshold = (float *)data;
-		break;
-  case HARMONIZER_SILENCE_THRESHOLD:
-    harm->silence_threshold = (float *)data;
-    break;
-  case HARMONIZER_PITCH_METHOD:
-    harm->pitch_method = (float *)data;
-    break;
- 	case HARMONIZER_PITCH_THRESHOLD:
-		harm->pitch_threshold = (float *)data;
-		break;
-  case HARMONIZER_INPUT:
-		harm->input = (float *)data;
-		break;
-  case HARMONIZER_MIDI_OUT:
-    harm->midi_out = (LV2_Atom_Sequence *)data;
-    break;
+  Harmonizer* harm = (Harmonizer*)instance;
+  switch ((PortIndex)port) {
+    case HARMONIZER_ONSET_METHOD:
+      harm->onset_method = (float *)data;
+      break;
+    case HARMONIZER_ONSET_THRESHOLD:
+      harm->onset_threshold = (float *)data;
+      break;
+    case HARMONIZER_SILENCE_THRESHOLD:
+      harm->silence_threshold = (float *)data;
+      break;
+    case HARMONIZER_PITCH_METHOD:
+      harm->pitch_method = (float *)data;
+      break;
+    case HARMONIZER_PITCH_THRESHOLD:
+      harm->pitch_threshold = (float *)data;
+      break;
+    case HARMONIZER_INPUT:
+      harm->input = (float *)data;
+      break;
+    case HARMONIZER_MIDI_OUT:
+      harm->midi_out = (LV2_Atom_Sequence *)data;
+      break;
   }
 }
 
@@ -275,7 +275,7 @@ deactivate(LV2_Handle instance)
 {
 }
 
-  static void
+static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
   Harmonizer *harm = (Harmonizer*)instance;
@@ -341,38 +341,38 @@ cleanup(LV2_Handle instance)
   for (uint i = 0; i < NUM_PITCH_METHODS; i++) {
     del_aubio_pitch(harm->pitches[i]);
   }
-	del_fvec(harm->onset);
-	del_fvec(harm->ab_in);
-	del_fvec(harm->ab_out);
-	del_fvec(harm->note_buffer);
-	del_fvec(harm->note_buffer2);
-	delete(harm->ringbuf);
-	free(harm);
+  del_fvec(harm->onset);
+  del_fvec(harm->ab_in);
+  del_fvec(harm->ab_out);
+  del_fvec(harm->note_buffer);
+  del_fvec(harm->note_buffer2);
+  delete(harm->ringbuf);
+  free(harm);
 }
 
 static const void*
 extension_data(const char* uri)
 {
-	return NULL;
+  return NULL;
 }
 
 static const LV2_Descriptor descriptor = {
-	HARMONIZER_URI,
-	instantiate,
-	connect_port,
-	activate,
-	run,
-	deactivate,
-	cleanup,
-	extension_data
+  HARMONIZER_URI,
+  instantiate,
+  connect_port,
+  activate,
+  run,
+  deactivate,
+  cleanup,
+  extension_data
 };
 
 LV2_SYMBOL_EXPORT
 const LV2_Descriptor*
 lv2_descriptor(uint32_t index)
 {
-	switch (index) {
-	case 0:  return &descriptor;
-	default: return NULL;
-	}
+  switch (index) {
+    case 0:  return &descriptor;
+    default: return NULL;
+  }
 }
