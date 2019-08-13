@@ -43,11 +43,13 @@
 
 #define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
 //#define RB_SIZE 16384
-#define RB_SIZE 32768
-#define AUBIO_BUFFER_SIZE 1024
-#define AUBIO_HOP_SIZE 256
+//#define RB_SIZE 32768
+#define RB_SIZE 65536
+#define AUBIO_BUFFER_SIZE 512
+#define AUBIO_HOP_SIZE 128
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 7
+#define MEDIAN_AND_NOTE_BUF_LEN 12
 
 typedef struct {
   LV2_URID atom_Blank;
@@ -219,7 +221,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   harm->bufsize = AUBIO_BUFFER_SIZE;
   harm->hopsize = AUBIO_HOP_SIZE;
   // sets length of note vector buffers
-  harm->median = 6;
+  harm->median = MEDIAN_AND_NOTE_BUF_LEN;
   harm->onset = new_fvec(1);
   harm->ab_in = new_fvec(harm->hopsize);
   harm->ab_out = new_fvec(1);
