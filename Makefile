@@ -104,7 +104,7 @@ AUBIO_SRCS = $(BUILDDIR)mathutils.c $(BUILDDIR)fvec.c $(BUILDDIR)onset/onset.c $
 	$(BUILDDIR)pitch/pitch.c $(BUILDDIR)pitch/pitchyinfft.c $(BUILDDIR)pitch/pitchyin.c \
 	$(BUILDDIR)pitch/pitchspecacf.c $(BUILDDIR)pitch/pitchfcomb.c $(BUILDDIR)pitch/pitchmcomb.c \
 	$(BUILDDIR)pitch/pitchschmitt.c $(BUILDDIR)spectral/fft.c $(BUILDDIR)spectral/ooura_fft8g.c \
-	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c
+	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c $(BUILDDIR)pitch/pitchyinfast.c
 
 AUBIO_OBJS= $(AUBIO_SRCS:.c=.o)
 
@@ -119,17 +119,15 @@ initialize: init
 
 init:
 	@mkdir -p $(BUILDDIR)
-#	cp -rp src/*.cpp src/*.h $(BUILDDIR)
-#	cp -rp src/aubio/* $(BUILDDIR)
 
-$(BUILDDIR)%.o : src/aubio/%.c
+$(BUILDDIR)%.o : src/aubio/src/%.c
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(BUILDDIR)/onset
 	@mkdir -p $(BUILDDIR)/pitch
 	@mkdir -p $(BUILDDIR)/spectral
 	@mkdir -p $(BUILDDIR)/utils
 	@mkdir -p $(BUILDDIR)/temporal
-	$(CC) $(CFLAGS) -I src/aubio -c \
+	$(CC) $(CFLAGS) -Isrc/aubio -Isrc/aubio/src -c \
 	$< -o $@
 
 $(BUILDDIR)%.o : src/%.cpp
@@ -138,7 +136,7 @@ $(BUILDDIR)%.o : src/%.cpp
 	$< -o $@
 
 $(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).cpp $(OBJS) $(AUBIO_OBJS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc/aubio/src \
 	  -o $@ $< \
 		-shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES) \
 		$(AUBIO_OBJS) $(OBJS)
