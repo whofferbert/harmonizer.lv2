@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
-OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer\
-								 -O3 -fno-finite-math-only
+# x86
+#OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only
+# rpi 3
+OPTIMIZATIONS ?= -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only -march=armv8-a -mtune=cortex-a53 -fPIC
 PREFIX ?= /usr/local
 CFLAGS ?= $(OPTIMIZATIONS) -Wall
 LV2DIR ?= $(PREFIX)/lib/lv2
@@ -50,9 +52,9 @@ targets+=$(BUILDDIR)$(LV2NAME)$(LIB_EXT)
 ifneq ($(MOD),)
   targets+=$(BUILDDIR)modgui
   MODLABEL=mod:label \"Harmonizer\";
-  MODBRAND=mod:brand \"Daniel Sheeler\";
+  MODBRAND=mod:brand \"William Hofferbert\";
   MODGUILABEL=modgui:label \"Harmonizer\";
-  MODGUIBRAND=modgui:brand \"Daniel Sheeler\";
+  MODGUIBRAND=modgui:brand \"William Hofferbert\";
 else
   MODLABEL=
   MODBRAND=
@@ -94,11 +96,16 @@ $(BUILDDIR)$(LV2NAME).ttl: lv2ttl/$(LV2NAME).ttl.in Makefile
 	sed "s/@VERSION@/lv2:microVersion $(LV2MIC) ;lv2:minorVersion $(LV2MIN) ;/g" \
 		lv2ttl/$(LV2NAME).ttl.in > $(BUILDDIR)$(LV2NAME).ttl
 
-AUBIO_SRCS = $(BUILDDIR)mathutils.c $(BUILDDIR)fvec.c $(BUILDDIR)onset.c $(BUILDDIR)peakpicker.c $(BUILDDIR)biquad.c $(BUILDDIR)filter.c $(BUILDDIR)lvec.c \
-						 $(BUILDDIR)specdesc.c $(BUILDDIR)statistics.c $(BUILDDIR)hist.c $(BUILDDIR)scale.c $(BUILDDIR)cvec.c $(BUILDDIR)pitch.c \
-						 $(BUILDDIR)pitchyinfft.c $(BUILDDIR)pitchyin.c $(BUILDDIR)pitchspecacf.c $(BUILDDIR)pitchfcomb.c \
-						 $(BUILDDIR)pitchmcomb.c $(BUILDDIR)pitchschmitt.c $(BUILDDIR)fft.c $(BUILDDIR)ooura_fft8g.c $(BUILDDIR)c_weighting.c \
-						 $(BUILDDIR)phasevoc.c
+#aubio_pitchyinfast_get_confidence
+
+AUBIO_SRCS = $(BUILDDIR)mathutils.c $(BUILDDIR)fvec.c $(BUILDDIR)onset/onset.c $(BUILDDIR)onset/peakpicker.c \
+	$(BUILDDIR)temporal/biquad.c $(BUILDDIR)temporal/filter.c $(BUILDDIR)lvec.c $(BUILDDIR)spectral/specdesc.c \
+	$(BUILDDIR)spectral/statistics.c $(BUILDDIR)utils/hist.c $(BUILDDIR)utils/scale.c $(BUILDDIR)cvec.c \
+	$(BUILDDIR)pitch/pitch.c $(BUILDDIR)pitch/pitchyinfft.c $(BUILDDIR)pitch/pitchyin.c \
+	$(BUILDDIR)pitch/pitchspecacf.c $(BUILDDIR)pitch/pitchfcomb.c $(BUILDDIR)pitch/pitchmcomb.c \
+	$(BUILDDIR)pitch/pitchschmitt.c $(BUILDDIR)spectral/fft.c $(BUILDDIR)spectral/ooura_fft8g.c \
+	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c
+
 AUBIO_OBJS= $(AUBIO_SRCS:.c=.o)
 
 SRCS = $(BUILDDIR)RingBuffer.cpp
@@ -117,6 +124,11 @@ init:
 
 $(BUILDDIR)%.o : src/aubio/%.c
 	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)/onset
+	@mkdir -p $(BUILDDIR)/pitch
+	@mkdir -p $(BUILDDIR)/spectral
+	@mkdir -p $(BUILDDIR)/utils
+	@mkdir -p $(BUILDDIR)/temporal
 	$(CC) $(CFLAGS) -I src/aubio -c \
 	$< -o $@
 
