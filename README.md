@@ -1,4 +1,4 @@
-#harmonizer.lv2 - Audio to Midi
+# harmonizer.lv2 - Audio to Midi
 ---
 
 harmonizer.lv2  uses the aubio toolkit for note onset and pitch detection on audio input and outputs midi notes.
@@ -9,7 +9,7 @@ Originally by Daniel Sheeler; <dsheeler@pobox.com>
 
 Updated and further modified by William Hofferbert; <will@hbert.com>
 
-##Install
+## Install
 ---
 This fork has been redesigned to build on a Raspberry Pi 3.
 
@@ -31,7 +31,7 @@ sudo ln -s $(pwd)/build /usr/local/modep/.lv2/harmonizer.lv2
 
 Reboot
 
-##Notes
+## Notes
 ---
 
 Note to packagers: The Makefile honors PREFIX and DESTDIR variables as well
