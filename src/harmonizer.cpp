@@ -1,5 +1,6 @@
 /*
   Copyright 2017 Daniel Sheeler <dsheeler@pobox.com>
+  Copyright 2019 William Hofferbert <will@hbert.com>
 
   Permission to use, copy, modify, and/or distribute this software for any
   purpose with or without fee is hereby granted, provided that the above
@@ -53,13 +54,18 @@ typedef struct {
   LV2_URID atom_URID;
 } harmonizer_URIs;
 
+// This sets up the control ports
+
+// possible ideas for more knobs:
+//   min/max pitch ; for helping to eliminate false positives
+//   default min = 44hz? default max = 2k ?
 typedef enum {
-  HARMONIZER_ONSET_METHOD   = 0,
-  HARMONIZER_ONSET_THRESHOLD   = 1,
+  HARMONIZER_ONSET_METHOD = 0,
+  HARMONIZER_ONSET_THRESHOLD = 1,
   HARMONIZER_SILENCE_THRESHOLD = 2,
-  HARMONIZER_PITCH_METHOD   = 3,
+  HARMONIZER_PITCH_METHOD = 3,
   HARMONIZER_PITCH_THRESHOLD = 4,
-  HARMONIZER_INPUT  = 5,
+  HARMONIZER_INPUT = 5,
   HARMONIZER_MIDI_OUT = 6
 } PortIndex;
 
@@ -146,6 +152,9 @@ void note_append(fvec_t *note_buffer, smpl_t curnote) {
   return;
 }
 
+// returns median note from array of pitches
+// is this okay? seems maybe not good
+// perhaps it can be enhanced with some pitch ranges
 smpl_t get_note (fvec_t * note_buffer, fvec_t * note_buffer2) {
   uint_t i;
   for (i = 0; i < note_buffer->length; i++) {
