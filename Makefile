@@ -104,7 +104,9 @@ AUBIO_SRCS = $(BUILDDIR)mathutils.c $(BUILDDIR)fvec.c $(BUILDDIR)onset/onset.c $
 	$(BUILDDIR)pitch/pitch.c $(BUILDDIR)pitch/pitchyinfft.c $(BUILDDIR)pitch/pitchyin.c \
 	$(BUILDDIR)pitch/pitchspecacf.c $(BUILDDIR)pitch/pitchfcomb.c $(BUILDDIR)pitch/pitchmcomb.c \
 	$(BUILDDIR)pitch/pitchschmitt.c $(BUILDDIR)spectral/fft.c $(BUILDDIR)spectral/ooura_fft8g.c \
-	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c $(BUILDDIR)pitch/pitchyinfast.c
+	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c $(BUILDDIR)pitch/pitchyinfast.c \
+	$(BUILDDIR)spectral/awhitening.c
+	
 
 AUBIO_OBJS= $(AUBIO_SRCS:.c=.o)
 
@@ -122,6 +124,7 @@ init:
 
 $(BUILDDIR)%.o : src/aubio/src/%.c
 	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)/modgui
 	@mkdir -p $(BUILDDIR)/onset
 	@mkdir -p $(BUILDDIR)/pitch
 	@mkdir -p $(BUILDDIR)/spectral
@@ -141,9 +144,16 @@ $(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).cpp $(OBJS) $(AUBIO_OBJS)
 		-shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES) \
 		$(AUBIO_OBJS) $(OBJS)
 	$(STRIP) $(STRIPFLAGS) $(BUILDDIR)$(LV2NAME)$(LIB_EXT)
-
-$(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl
+	rm $(BUILDDIR)*.o
+	rm -rf $(BUILDDIR)onset
+	rm -rf $(BUILDDIR)utils
+	rm -rf $(BUILDDIR)temporal
+	rm -rf $(BUILDDIR)pitch
+	rm -rf $(BUILDDIR)spectral
 	cp -r modgui/* $(BUILDDIR)modgui/
+
+#$(BUILDDIR)modgui: $(BUILDDIR)$(LV2NAME).ttl
+#	cp -r modgui/* $(BUILDDIR)modgui/
 
 # install/uninstall/clean target definitions
 
