@@ -43,7 +43,7 @@
 
 #define HARMONIZER_URI "http://dsheeler.org/plugins/harmonizer"
 #define RB_SIZE 16384
-#define AUBIO_BUFFER_SIZE 2048
+#define AUBIO_BUFFER_SIZE 1024
 #define AUBIO_HOP_SIZE 256
 #define NUM_ONSET_METHODS 9
 //#define NUM_PITCH_METHODS 6
