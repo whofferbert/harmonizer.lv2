@@ -105,7 +105,7 @@ AUBIO_SRCS = $(BUILDDIR)mathutils.c $(BUILDDIR)fvec.c $(BUILDDIR)onset/onset.c $
 	$(BUILDDIR)pitch/pitchspecacf.c $(BUILDDIR)pitch/pitchfcomb.c $(BUILDDIR)pitch/pitchmcomb.c \
 	$(BUILDDIR)pitch/pitchschmitt.c $(BUILDDIR)spectral/fft.c $(BUILDDIR)spectral/ooura_fft8g.c \
 	$(BUILDDIR)temporal/c_weighting.c $(BUILDDIR)spectral/phasevoc.c $(BUILDDIR)pitch/pitchyinfast.c \
-	$(BUILDDIR)spectral/awhitening.c
+	$(BUILDDIR)spectral/awhitening.c $(BUILDDIR)utils/log.c
 	
 
 AUBIO_OBJS= $(AUBIO_SRCS:.c=.o)
