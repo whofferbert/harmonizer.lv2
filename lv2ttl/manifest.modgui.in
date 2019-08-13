@@ -8,7 +8,7 @@
         modgui:stylesheet <modgui/stylesheet-harmonizer.css> ;
         modgui:screenshot <modgui/screenshot-harmonizer.png> ;
         modgui:thumbnail <modgui/thumbnail-harmonizer.png> ;
-        modgui:brand "Daniel Sheeler" ;
+        modgui:brand "William Hofferbert" ;
         modgui:label "Harmonizer" ;
         modgui:model "boxy" ;
         modgui:panel "1-select-4-knobs" ;
