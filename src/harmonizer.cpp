@@ -42,11 +42,11 @@
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
 #define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
-#define RB_SIZE 16384
+//#define RB_SIZE 16384
+#define RB_SIZE 32768
 #define AUBIO_BUFFER_SIZE 1024
 #define AUBIO_HOP_SIZE 256
 #define NUM_ONSET_METHODS 9
-//#define NUM_PITCH_METHODS 6
 #define NUM_PITCH_METHODS 7
 
 typedef struct {
