@@ -30,6 +30,18 @@ sudo ln -s $(pwd)/build /usr/local/modep/.lv2/harmonizer.lv2
 
 Reboot your pi afterward, and you should be able to find the Harmonizer plugin in the list.
 
+## Tweaking
+
+If you have the build dir symlinked to the proper lv2 location, it makes tweaking and testing things a bit easier.
+
+Adjust whatever things you need to in the source, and simply do:
+```bash
+make clean
+make
+```
+
+The reboot your pi, or relaunch your DAW software, etc.
+
 ## Notes
 
 Note to packagers: The Makefile honors PREFIX and DESTDIR variables as well
