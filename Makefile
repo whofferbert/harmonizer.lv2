@@ -130,17 +130,14 @@ $(BUILDDIR)%.o : src/aubio/src/%.c
 	@mkdir -p $(BUILDDIR)/spectral
 	@mkdir -p $(BUILDDIR)/utils
 	@mkdir -p $(BUILDDIR)/temporal
-	$(CC) $(CFLAGS) -Isrc/aubio/src -c \
-	$< -o $@
+	$(CC) $(CFLAGS) -Isrc/aubio/src -c $< -o $@
 
 $(BUILDDIR)%.o : src/%.cpp
 	@mkdir -p $(BUILDDIR)
-	$(CC) $(CFLAGS) -I$(BUILDDIR) -c \
-	$< -o $@
+	$(CC) $(CFLAGS) -I$(BUILDDIR) -c $< -o $@
 
 $(BUILDDIR)$(LV2NAME)$(LIB_EXT): src/$(LV2NAME).cpp $(OBJS) $(AUBIO_OBJS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc/aubio/src \
-	  -o $@ $< \
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc/aubio/src -o $@ $< \
 		-shared $(LV2LDFLAGS) $(LDFLAGS) $(LOADLIBES) \
 		$(AUBIO_OBJS) $(OBJS)
 	$(STRIP) $(STRIPFLAGS) $(BUILDDIR)$(LV2NAME)$(LIB_EXT)
