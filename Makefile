@@ -2,6 +2,10 @@
 # x86
 #OPTIMIZATIONS ?= -msse -msse2 -mfpmath=sse -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only
 # rpi 3
+
+CC ?= cc
+#CC = clang
+
 OPTIMIZATIONS ?= -ffast-math -fomit-frame-pointer -O3 -fno-finite-math-only -march=armv8-a -mtune=cortex-a53 -fPIC
 PREFIX ?= /usr/local
 CFLAGS ?= $(OPTIMIZATIONS) -Wall
@@ -27,6 +31,7 @@ SRCS =
 .SUFFIXES: .cpp
 
 UNAME=$(shell uname)
+
 ifeq ($(UNAME),Darwin)
   LV2LDFLAGS=-dynamiclib
   LIB_EXT=.dylib
