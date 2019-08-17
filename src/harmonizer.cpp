@@ -42,11 +42,18 @@
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
 #define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
-//#define RB_SIZE 16384
-//#define RB_SIZE 32768
-#define RB_SIZE 65536
-#define AUBIO_BUFFER_SIZE 512
-#define AUBIO_HOP_SIZE 128
+//#define RB_SIZE 65536
+#define RB_SIZE 131072
+
+// so the buffer size is critical here.
+// you can compare your sample rate (44100, 48000, 96000, etc)
+// to the buffer (window) size, which can tell you your
+// relative lowest pitch that could be detected easily
+// the bigger the buffer size, the more delay there will be
+// in processing the audio.
+#define AUBIO_BUFFER_SIZE 1024
+// hop size is how many chunks per period to look at
+#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 8
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 7
 #define MEDIAN_AND_NOTE_BUF_LEN 12
@@ -63,7 +70,7 @@ typedef struct {
 
 // possible ideas for more knobs:
 //   min/max pitch ; for helping to eliminate false positives
-//   default min = 44hz? default max = 2k ?
+//   default min = 40hz? default max = 2k ?
 typedef enum {
   HARMONIZER_ONSET_METHOD = 0,
   HARMONIZER_ONSET_THRESHOLD = 1,
@@ -217,7 +224,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   lv2_atom_forge_init (&harm->forge, harm->map);
   map_mem_uris (harm->map, &harm->uris);
   harm->samplerate = (float)rate;
-  // bufsize/hipsize are critical for proper sampling ranges
+  // bufsize/hopsize are critical for proper sampling ranges
   harm->bufsize = AUBIO_BUFFER_SIZE;
   harm->hopsize = AUBIO_HOP_SIZE;
   // sets length of note vector buffers
@@ -227,7 +234,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   harm->ab_out = new_fvec(1);
   harm->note_buffer = new_fvec(harm->median);
   harm->note_buffer2 = new_fvec(harm->median);
-  // different settings for pitch detection
+  // onset methods
   onset_methods[0] = (char*)"default";
   onset_methods[1] = (char*)"energy";
   onset_methods[2] = (char*)"hfc";
@@ -237,6 +244,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   onset_methods[6] = (char*)"kl";
   onset_methods[7] = (char*)"mkl";
   onset_methods[8] = (char*)"specflux";
+  // different settings for pitch detection
   pitch_methods[0] = (char*)"default";
   pitch_methods[1] = (char*)"schmitt";
   pitch_methods[2] = (char*)"fcomb";
@@ -303,20 +311,31 @@ deactivate(LV2_Handle instance)
 static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
+  //*harm = pointer to the incoming LV2_handle
   Harmonizer *harm = (Harmonizer*)instance;
   const uint32_t capacity = harm->midi_out->atom.size;
   lv2_atom_forge_set_buffer(&harm->forge, (uint8_t*)harm->midi_out, capacity);
   lv2_atom_forge_sequence_head(&harm->forge, &harm->frame, 0);
+
   const float *input  = harm->input;
   float new_pitch;
+
+  // for every incoming sample (n_samples)
   for (uint i = 0; i < n_samples; i++) {
-    if (harm->ringbuf->Write((unsigned char*)&input[i], sizeof(smpl_t))
-        < (int)sizeof(smpl_t)) {
+    // if the number of byted written to ringbuf is less than size of sample
+    if (harm->ringbuf->Write( (unsigned char*)&input[i], sizeof(smpl_t) ) < (int)sizeof(smpl_t)) {
+      // that's an overrun
       harm->overruns++;
       lv2_log_trace(&harm->logger, "overrun on ringbuf: %d\n", harm->overruns);
     }
+    // is it possible to underrun here?
+    // conventionally in recording, an xrun is a combination of underrun and overrun
+    // if the thing overruns, then we lost bytes
+    // can we keep track of those in a separate ringbuf ?
   }
+
   // while we have things to do ...
+  // if there are enough bytes to satisfy 
   while (harm->ringbuf->GetReadAvail() >= sizeof(smpl_t) * harm->hopsize) {
     harm->ringbuf->Read((unsigned char*)harm->ab_in->data, sizeof(smpl_t) * harm->hopsize);
 
@@ -337,6 +356,7 @@ run(LV2_Handle instance, uint32_t n_samples)
     note_append(harm->note_buffer, new_pitch);
 
     harm->curlevel = aubio_level_detection(harm->ab_in, *harm->silence_threshold);
+
     if (fvec_get_sample(harm->onset, 0)) {
       if (harm->curlevel == 1.0) {
         harm->isready = 0;
@@ -355,6 +375,7 @@ run(LV2_Handle instance, uint32_t n_samples)
         }
       }
     }
+
   }
 }
 
