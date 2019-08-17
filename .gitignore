@@ -3,3 +3,4 @@
 build
 .lock-waf*
 old/
+build.*
