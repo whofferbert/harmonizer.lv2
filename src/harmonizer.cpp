@@ -42,10 +42,10 @@
 #include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 
 #define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
-//#define RB_SIZE 65536
-#define RB_SIZE 131072
+#define RB_SIZE 65536
+//#define RB_SIZE 131072
 
-// so the buffer size is critical here.
+// so, the buffer size is critical here.
 // you can compare your sample rate (44100, 48000, 96000, etc)
 // to the buffer (window) size, which can tell you your
 // relative lowest pitch that could be detected easily
@@ -53,10 +53,11 @@
 // in processing the audio.
 #define AUBIO_BUFFER_SIZE 1024
 // hop size is how many chunks per period to look at
-#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 8
+#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 4
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 7
-#define MEDIAN_AND_NOTE_BUF_LEN 12
+// this could maybe be extrapolated with maths to an optimum?
+#define MEDIAN_AND_NOTE_BUF_LEN 4
 
 typedef struct {
   LV2_URID atom_Blank;
