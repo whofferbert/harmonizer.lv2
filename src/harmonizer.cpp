@@ -43,21 +43,20 @@
 
 #define HARMONIZER_URI "http://hbert.com/plugins/harmonizer"
 #define RB_SIZE 65536
-//#define RB_SIZE 131072
 
-// so, the buffer size is critical here.
-// you can compare your sample rate (44100, 48000, 96000, etc)
-// to the buffer (window) size, which can tell you your
-// relative lowest pitch that could be detected easily
+// So, the buffer size is critical here.
+// You can compare your sample rate (44100, 48000, 96000, etc)
+// to the buffer (window) size, which sets you your
+// relative lowest pitch that could be detected reliably.
 // the bigger the buffer size, the more delay there will be
 // in processing the audio.
 #define AUBIO_BUFFER_SIZE 1024
 // hop size is how many chunks per period to look at
-#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 4
+#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 2
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 7
 // this could maybe be extrapolated with maths to an optimum?
-#define MEDIAN_AND_NOTE_BUF_LEN 4
+#define MEDIAN_AND_NOTE_BUF_LEN 2
 
 typedef struct {
   LV2_URID atom_Blank;
@@ -233,6 +232,7 @@ instantiate(const LV2_Descriptor*     descriptor,
   harm->onset = new_fvec(1);
   harm->ab_in = new_fvec(harm->hopsize);
   harm->ab_out = new_fvec(1);
+  // I'm not sure if these buffers should be tied to median
   harm->note_buffer = new_fvec(harm->median);
   harm->note_buffer2 = new_fvec(harm->median);
   // onset methods
@@ -340,24 +340,24 @@ run(LV2_Handle instance, uint32_t n_samples)
   while (harm->ringbuf->GetReadAvail() >= sizeof(smpl_t) * harm->hopsize) {
     harm->ringbuf->Read((unsigned char*)harm->ab_in->data, sizeof(smpl_t) * harm->hopsize);
 
+    // Onset stuff
     aubio_onset_set_silence(harm->onsets[(int)*harm->onset_method], (float)*harm->silence_threshold);
-
     aubio_onset_set_threshold(harm->onsets[(int)*harm->onset_method], (float)*harm->onset_threshold);
-
     aubio_onset_do(harm->onsets[(int)*harm->onset_method], harm->ab_in, harm->onset);
 
+    // Pitch stuff
     aubio_pitch_set_tolerance(harm->pitches[(int)*harm->pitch_method], (float)*harm->pitch_threshold);
-
     aubio_pitch_set_silence(harm->pitches[(int)*harm->pitch_method], (float)*harm->silence_threshold);
-
     aubio_pitch_do(harm->pitches[(int)*harm->pitch_method], harm->ab_in, harm->ab_out);
-
     new_pitch = fvec_get_sample(harm->ab_out, 0);
 
+    // managing notes?
     note_append(harm->note_buffer, new_pitch);
 
+    // this check the level of the signal
     harm->curlevel = aubio_level_detection(harm->ab_in, *harm->silence_threshold);
 
+    // ??
     if (fvec_get_sample(harm->onset, 0)) {
       if (harm->curlevel == 1.0) {
         harm->isready = 0;
@@ -368,9 +368,12 @@ run(LV2_Handle instance, uint32_t n_samples)
     } else {
       if (harm->isready > 0)
         harm->isready++;
+      // if we have been ready equal to the median number of notes?
       if (harm->isready == harm->median) {
         send_noteoff(harm->curnote, 0, harm);
+        // mmmmm wat?
         harm->curnote = get_note(harm->note_buffer, harm->note_buffer2);
+        // if we have a note
         if (harm->curnote > 0) {
           send_noteon(harm->curnote, 127+(int)floorf(harm->curlevel), harm);
         }
