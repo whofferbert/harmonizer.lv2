@@ -2,5 +2,4 @@
 .waf*
 build
 .lock-waf*
-old/
 build.*
