@@ -8,11 +8,13 @@ Originally by Daniel Sheeler; <dsheeler@pobox.com>
 
 Updated and further modified by William Hofferbert; <will@hbert.com>
 
-## Install
+## Requirements
 
 This fork has been redesigned to build on a Raspberry Pi 3.
 
 Compiling harmonizer requires the LV2 SDK, bash, gnu-make, and a c-compiler (probably all default installed on the pi, except the c compiler, let me know/PR the README.md!).
+
+## Install
 
 Somewhere on your Raspberry Pi 3B/3B+; do the following:
 ```bash
