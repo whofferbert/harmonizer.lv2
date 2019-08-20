@@ -25,7 +25,7 @@ Somewhere on your Raspberry Pi 3B/3B+; do the following:
   make
 ```
 
-If you are using MODEP and want to use this, then also do the following, which will link the built plugin to the:
+If you are using MODEP and want to use this, then also do the following, which will symlink the built plugin in to the lv2 directory that MODEP looks at:
 ```bash
 sudo ln -s $(pwd)/build /usr/local/modep/.lv2/harmonizer.lv2
 ```
@@ -42,7 +42,9 @@ make clean
 make
 ```
 
-The reboot your pi, or relaunch your DAW software, etc.
+The reboot your pi, or relaunch your DAW software, etc. and test again!
+
+Happy hacking!
 
 ## Notes
 
