@@ -45,18 +45,22 @@
 #define RB_SIZE 65536
 
 // So, the buffer size is critical here.
-// You can compare your sample rate (44100, 48000, 96000, etc)
-// to the buffer (window) size, which sets you your
-// relative lowest pitch that could be detected reliably.
-// the bigger the buffer size, the more delay there will be
-// in processing the audio.
+// You can compare your sample rate (44100, 48000, 96000, etc) to the buffer 
+// (aka window) and hop size, which sets you your relative lowest pitch that
+// can be detected reliably.
+// the bigger the buffer size, the more delay there will be in processing 
+// the audio, but you should be able to detect lower pitches. 
 #define AUBIO_BUFFER_SIZE 1024
+
 // hop size is how many chunks per period to look at
-#define AUBIO_HOP_SIZE AUBIO_BUFFER_SIZE / 2
+#define AUBIO_HOP_SIZE    AUBIO_BUFFER_SIZE / 2
+
+// this could maybe be extrapolated with maths to an optimum? also maybe
+// the combined median approach later is not the best.
+#define MEDIAN_AND_NOTE_BUF_LEN 2
+
 #define NUM_ONSET_METHODS 9
 #define NUM_PITCH_METHODS 7
-// this could maybe be extrapolated with maths to an optimum?
-#define MEDIAN_AND_NOTE_BUF_LEN 2
 
 typedef struct {
   LV2_URID atom_Blank;
@@ -323,7 +327,7 @@ run(LV2_Handle instance, uint32_t n_samples)
 
   // for every incoming sample (n_samples)
   for (uint i = 0; i < n_samples; i++) {
-    // if the number of byted written to ringbuf is less than size of sample
+    // if the number of bytes written to ringbuf is less than size of sample
     if (harm->ringbuf->Write( (unsigned char*)&input[i], sizeof(smpl_t) ) < (int)sizeof(smpl_t)) {
       // that's an overrun
       harm->overruns++;
@@ -336,7 +340,7 @@ run(LV2_Handle instance, uint32_t n_samples)
   }
 
   // while we have things to do ...
-  // if there are enough bytes to satisfy 
+  // if there are enough bytes to satisfy  (the sample size * hop size)
   while (harm->ringbuf->GetReadAvail() >= sizeof(smpl_t) * harm->hopsize) {
     harm->ringbuf->Read((unsigned char*)harm->ab_in->data, sizeof(smpl_t) * harm->hopsize);
 
@@ -351,30 +355,41 @@ run(LV2_Handle instance, uint32_t n_samples)
     aubio_pitch_do(harm->pitches[(int)*harm->pitch_method], harm->ab_in, harm->ab_out);
     new_pitch = fvec_get_sample(harm->ab_out, 0);
 
-    // managing notes?
+    // managing note buffer?
     note_append(harm->note_buffer, new_pitch);
 
     // this check the level of the signal
+    // this needs to be sanity checked for the onset triggering in the tests
     harm->curlevel = aubio_level_detection(harm->ab_in, *harm->silence_threshold);
 
-    // ??
+    // if we have an onset sample
     if (fvec_get_sample(harm->onset, 0)) {
+      // if the onset level == 1.0, from aubio_level_detection
+      // then current level was less than the threshold
       if (harm->curlevel == 1.0) {
         harm->isready = 0;
         send_noteoff(harm->curnote, 0, harm);
+      // otherwise we are ready
       } else {
+        // maybe this should be a isready++ 
+        // and later we set isready = 0 ?
+        // that or rely on the above to trigger and set to 0
         harm->isready = 1;
       }
     } else {
+      // if we have actionable things
       if (harm->isready > 0)
+        // if we are ready.... be more ready?
+        // this seems broken. if we are at 1, go to 2. so median will never work at 1???
+        // syhould this whole if statement and action just be removed??
         harm->isready++;
-      // if we have been ready equal to the median number of notes?
+      // if we have been ready equal to the median number of notes
       if (harm->isready == harm->median) {
         send_noteoff(harm->curnote, 0, harm);
-        // mmmmm wat?
         harm->curnote = get_note(harm->note_buffer, harm->note_buffer2);
         // if we have a note
         if (harm->curnote > 0) {
+          // do the thing
           send_noteon(harm->curnote, 127+(int)floorf(harm->curlevel), harm);
         }
       }
@@ -382,6 +397,55 @@ run(LV2_Handle instance, uint32_t n_samples)
 
   }
 }
+
+// the following excerpt is from src/aubio/src/musicutils.h
+// just for making easy thinking about the above from one file
+// will be removed once the thoughts are worked out
+
+/*
+
+smpl_t
+aubio_level_lin (const fvec_t * f)
+{
+  smpl_t energy = 0.;
+#ifndef HAVE_BLAS
+  uint_t j;
+  for (j = 0; j < f->length; j++) {
+    energy += SQR (f->data[j]);
+  }
+#else
+  energy = aubio_cblas_dot(f->length, f->data, 1, f->data, 1);
+#endif
+  return energy / f->length;
+}
+
+// .....
+
+smpl_t
+aubio_db_spl (const fvec_t * o)
+{
+  return 10. * LOG10 (aubio_level_lin (o));
+}
+
+uint_t
+aubio_silence_detection (const fvec_t * o, smpl_t threshold)
+{
+  return (aubio_db_spl (o) < threshold);
+}
+
+smpl_t
+aubio_level_detection (const fvec_t * o, smpl_t threshold)
+{
+  smpl_t db_spl = aubio_db_spl (o);
+  if (db_spl < threshold) {
+    return 1.;
+  } else {
+    return db_spl;
+  }
+}
+
+*/
+
 
 static void
 cleanup(LV2_Handle instance)
